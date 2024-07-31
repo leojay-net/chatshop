@@ -116,7 +116,7 @@ class ChatView(GenericAPIView):
 class ChatGetView(GenericAPIView):
     serializer_class = ChatHistorySerializer
     queryset = ChatHistory.objects.all()
-    def get(self, request, email=None, session_key=None):
+    def get(self, request, id =None, email=None, session_key=None):
         try:
             if email and session_key:
                 chat_history = ChatHistory.objects.get(email=email, session_key=session_key)
@@ -132,10 +132,10 @@ class ChatGetView(GenericAPIView):
 
         except ObjectDoesNotExist:
             return Response({"error": "Chat history not found"}, status=status.HTTP_404_NOT_FOUND)
-        except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        # except Exception as e:
+        #     return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    def delete(self, request, email=None, session_key=None):
+    def delete(self, request,id =None, email=None, session_key=None):
         try:
             if email and session_key:
                 chat_history = ChatHistory.objects.get(email=email, session_key=session_key)
@@ -152,7 +152,7 @@ class ChatGetView(GenericAPIView):
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    def put(self, request, email=None, session_key=None):
+    def put(self, request, id =None, email=None, session_key=None):
         try:
             if email and session_key:
                 chat_history = ChatHistory.objects.get(email=email, session_key=session_key)

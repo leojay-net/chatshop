@@ -3,5 +3,7 @@ from .views import ChatView, ChatGetView
 
 urlpatterns = [
     path('product-chat', ChatView.as_view(), name="product-chat"),
-    re_path(r'^chats(?:/(?P<email>[^/]+))?(?:/(?P<session_key>[^/]+))?/?$', ChatGetView.as_view(), name='chat-get'),
+    path('chats/', ChatGetView.as_view(), name='chat-get-all'),
+    path('chats/<str:email>/', ChatGetView.as_view(), name='chat-get-by-email'),
+    path('chats/<email>/<str:session_key>/', ChatGetView.as_view(), name='chat-get-by-email-session'),
 ]
