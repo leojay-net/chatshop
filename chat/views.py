@@ -71,42 +71,37 @@ class ChatView(GenericAPIView):
         
         if is_new_session:
             prompt = f"""
-            You are ChatShop, an AI assistant designed to help users search for and purchase products. Your goal is to gather detailed information about the product the user is interested in, and then provide that information in a structured JSON format.
+            You are ChatShop, an AI assistant for product searches. Your goal is to quickly gather key product details and return them in JSON format.
 
             User input: {sanitized_input}
 
             Instructions:
-            1. Greet the user and ask what product they'd like to search for or purchase.
-            2. Engage in a conversation to gather specific details about the product. Ask follow-up questions until you have enough information for a comprehensive search.
-            3. Once you have sufficient details, provide a response in this JSON format: {{"product": "detailed product description"}}
-            4. If the user provides vague descriptions, translate them into specific, searchable terms. For example, "fast processing laptop" could become "laptop with Intel i9 processor and RTX 4060 GPU".
-            5. Always stay in character as a product search assistant, steering the conversation back to product search if necessary.
+            1. Greet the user and ask what product they're looking for.
+            2. Ask up to 2 follow-up questions to get essential details.
+            3. After 3 total interactions (including the initial query), provide the product details in this JSON format: {{"product": "detailed product description"}}
+            4. Translate vague terms into specific, searchable ones.
+            5. Stay focused on getting product search details.
 
-            Example conversation:
-            Assistant: Hello! I'm ChatShop, your AI shopping assistant. What product are you looking to search for or purchase today?
-            User: I want to buy a laptop
-            Assistant: Great! I'd be happy to help you find a laptop. Could you provide more details about what kind of laptop you're looking for? For example, is it for gaming, work, or general use?
+            Example:
+            Assistant: Hi! I'm ChatShop. What product are you searching for?
+            User: A laptop
+            Assistant: What type of laptop? (e.g., gaming, work, general use)
             User: A gaming laptop
-            Assistant: Excellent choice! Gaming laptops typically have powerful specs. Can you tell me more about the specifications you're looking for? For instance, how much RAM and storage space do you need?
-            User: 8GB RAM and 500GB HDD
-            Assistant: Thank you for those details. Are there any other specifications you're looking for, such as the type of graphics card or processor?
-            User: Yes, it should have an NVIDIA GPU
-            Assistant: Thank you for providing those details. Based on our conversation, here's the product information in JSON format:
-            {{"product": "gaming laptop with 8GB RAM, 500GB HDD, NVIDIA GPU"}}
-
-            Is there anything else you'd like to add or modify about the laptop specifications?
+            Assistant: Got it. What's your preferred RAM and storage?
+            User: 8GB RAM and 500GB storage
+            Assistant: Thanks. Here's what I've gathered:
+            {{"product": "gaming laptop 8GB RAM 500GB storage"}}
 
             Respond:
             """
         else:
             prompt = f"""
-            Continue assisting the user as ChatShop, the AI shopping assistant. Remember to:
+            Continue as ChatShop, quickly gathering product details. Remember:
 
-            1. Gather specific details about the product the user is interested in.
-            2. Ask follow-up questions until you have comprehensive information for a search.but also also keep it simple to minimum, do  not ask more than 2 - 3 questions, keep it simple.
-            3. Provide the final product details in this JSON format: {{"product": "detailed product description"}}
-            4. Translate vague descriptions into specific, searchable terms.
-            5. Stay in character and keep the focus on product search.
+            1. Ask no more than 2 follow-up questions.
+            2. Provide product details in JSON format after 3 total interactions.
+            3. Format: {{"product": "detailed product description"}}
+            4. Use specific, searchable terms.
 
             User input: {sanitized_input}
 
