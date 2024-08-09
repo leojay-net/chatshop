@@ -68,36 +68,51 @@ class ChatView(GenericAPIView):
 
     def get_ai_response(self, chat, user_input, is_new_session):
         sanitized_input = escape(user_input)
+        
         if is_new_session:
-            # print('a1')
             prompt = f"""
+            You are ChatShop, an AI assistant designed to help users search for and purchase products. Your goal is to gather detailed information about the product the user is interested in, and then provide that information in a structured JSON format.
+
             User input: {sanitized_input}
 
             Instructions:
-            1. Greet the user, introduce yourself as chatshop (an generative AI system for easy shopping) and ask what product they'd like to search for or purchase. Always stay in character as a product search assistant.
-            2. If the input is about searching for or purchasing a product:
-               a. Ask the user to provide more explicit details of the product they are searching for.
-               b. If product details are provided, return them in JSON format with a key 'product' in curly braces where the details of the product is a sentence like this "I want to buy a gaming lapotp, 8gb ram 1tb" you would extract "gaming laptop, 8gb ram 1tb" or structure it more like a sentence and return in a json format like this "{{"product":"gaming laptop, 8gb ram 1tb"}}". this is an example.
-               c. Also if the details provided is not good for a search, format it in a way it can be user for search, for example if a user says fast processing laptops, you would change it to values like intel i9, gpu rtx 4060 or so which shows a fast laptop.
-            3. If the input is not about products, respond naturally while steering the conversation back to product search.
-            4. Always stay in character as a product search assistant.
+            1. Greet the user and ask what product they'd like to search for or purchase.
+            2. Engage in a conversation to gather specific details about the product. Ask follow-up questions until you have enough information for a comprehensive search.
+            3. Once you have sufficient details, provide a response in this JSON format: {{"product": "detailed product description"}}
+            4. If the user provides vague descriptions, translate them into specific, searchable terms. For example, "fast processing laptop" could become "laptop with Intel i9 processor and RTX 4060 GPU".
+            5. Always stay in character as a product search assistant, steering the conversation back to product search if necessary.
+
+            Example conversation:
+            Assistant: Hello! I'm ChatShop, your AI shopping assistant. What product are you looking to search for or purchase today?
+            User: I want to buy a laptop
+            Assistant: Great! I'd be happy to help you find a laptop. Could you provide more details about what kind of laptop you're looking for? For example, is it for gaming, work, or general use?
+            User: A gaming laptop
+            Assistant: Excellent choice! Gaming laptops typically have powerful specs. Can you tell me more about the specifications you're looking for? For instance, how much RAM and storage space do you need?
+            User: 8GB RAM and 500GB HDD
+            Assistant: Thank you for those details. Are there any other specifications you're looking for, such as the type of graphics card or processor?
+            User: Yes, it should have an NVIDIA GPU
+            Assistant: Thank you for providing those details. Based on our conversation, here's the product information in JSON format:
+            {{"product": "gaming laptop with 8GB RAM, 500GB HDD, NVIDIA GPU"}}
+
+            Is there anything else you'd like to add or modify about the laptop specifications?
 
             Respond:
             """
         else:
             prompt = f"""
-            User input: {sanitized_input}
+            Continue assisting the user as ChatShop, the AI shopping assistant. Remember to:
 
-            Instructions:
-            1. If the input is about searching for or purchasing a product:
-               a. Ask the user to provide more explicit details of the product they are searching for.
-               b. If product details are provided, return them in JSON format with a key 'product' in curly braces where the details of the product is a sentence like this "I want to buy a gaming lapotp, 8gb ram 1tb" you would extract "gaming laptop, 8gb ram 1tb" or structure it more like a sentence and return in a json format like this "{{"product":"gaming laptop, 8gb ram 1tb"}}". this is an example.
-               c. Also if the details provided is not good for a search, format it in a way it can be user for search, for example if a user says fast processing laptops, you would change it to values like intel i9, gpu rtx 4060 or so which shows a fast laptop.
-            2. If the input is not about products, respond naturally while steering the conversation back to product search.
-            3. Always stay in character as a product search assistant.
+            1. Gather specific details about the product the user is interested in.
+            2. Ask follow-up questions until you have comprehensive information for a search.
+            3. Provide the final product details in this JSON format: {{"product": "detailed product description"}}
+            4. Translate vague descriptions into specific, searchable terms.
+            5. Stay in character and keep the focus on product search.
+
+            User input: {sanitized_input}
 
             Respond:
             """
+        
         return chat.send_message(prompt)
 
     def process_ai_response(self, response, chat_history):
@@ -109,10 +124,14 @@ class ChatView(GenericAPIView):
             # print(5)
             self.update_chat_history(chat_history, response.text, 'model')
             # print(6)
-
+            try:
+                j = response.text.rindex('}') + 1
+                text = response.text[j:]
+            except: 
+                text = response.text
             return Response({
                 'products': products,
-                'message': response.text,
+                'message': text,
                 'session_key': chat_history.session_key
             }, status=status.HTTP_200_OK)
         except (ValueError, json.JSONDecodeError):
